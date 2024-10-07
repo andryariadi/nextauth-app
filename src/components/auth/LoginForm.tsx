@@ -78,7 +78,7 @@ const LoginForm: React.FC = () => {
           <motion.button
             className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
             whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
             type="submit"
             disabled={isLoading}
           >

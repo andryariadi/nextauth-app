@@ -10,16 +10,29 @@ import { BiLoaderCircle } from "react-icons/bi";
 import { FcGoogle } from "react-icons/fc";
 import { ImGithub } from "react-icons/im";
 import InputField from "./InputField";
-import { useState, FormEvent } from "react";
+import { useState } from "react";
+import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signupSchema } from "@/validators";
 
 const RegisterForm: React.FC = () => {
   const [openPass, setOpenPass] = useState<boolean>(false);
-  const isLoading = false;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+  });
+
+  const dataUsername = { ...register("username") };
+  const dataEmail = { ...register("email") };
+  const dataPassword = { ...register("password") };
 
   // Event handler for form submission
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    console.log("masuk nih bree");
+  const handleRegister: SubmitHandler<FieldValues> = async (data) => {
+    console.log(data, "<---diregisterform");
   };
 
   return (
@@ -29,33 +42,43 @@ const RegisterForm: React.FC = () => {
         <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text">Create Account</h2>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <div className="bg-violt-500 bg-ros-500 flex flex-col gap-4">
-            <InputField icon={<UserRound size={22} />} type="text" placeholder="Username" name="username" />
+        <form onSubmit={handleSubmit(handleRegister)} className="flex flex-col gap-6">
+          <div className="bg-violt-500 bg-ros-500 flex flex-col gap-8">
+            <div className="relative">
+              <InputField icon={<UserRound size={22} />} type="text" placeholder="Username" propData={dataUsername} />
 
-            <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" name="email" />
+              {errors.username && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.username.message as string}</p>}
+            </div>
 
-            <InputField
-              icon={<Lock size={22} />}
-              passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
-              openPass={openPass}
-              setOpenPass={setOpenPass}
-              type={openPass ? "text" : "password"}
-              placeholder="Password"
-              name="password"
-            />
+            <div className="relative">
+              <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" propData={dataEmail} />
+
+              {errors.email && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.email.message as string}</p>}
+            </div>
+
+            <div className="relative">
+              <InputField
+                icon={<Lock size={22} />}
+                passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
+                openPass={openPass}
+                setOpenPass={setOpenPass}
+                type={openPass ? "text" : "password"}
+                placeholder="Password"
+                propData={dataPassword}
+              />
+
+              {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message as string}</p>}
+            </div>
           </div>
-
-          {/* {error && <p className="text-red-500 text-sm">{error}</p>} */}
 
           <motion.button
             className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
             whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
-            {isLoading ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Login"}
+            {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Register"}
           </motion.button>
 
           <div className="flex flex-col items-center justify-center gap-4">
@@ -73,7 +96,7 @@ const RegisterForm: React.FC = () => {
         <p className="text-center text-gray-400">
           Already have an account?
           <Link href="/auth/login" className="text-green-500 ml-2 inline-block hover:scale-110 transition-all duration-300">
-            Register
+            Login
           </Link>
         </p>
       </div>
