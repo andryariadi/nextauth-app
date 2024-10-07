@@ -4,10 +4,10 @@ type InputFieldProps = {
   openPass?: boolean;
   setOpenPass?: React.Dispatch<React.SetStateAction<boolean>>;
   type: string;
-  placeholder: string; // Tambahkan placeholder
+  placeholder: string;
   name: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 const InputField = ({ icon, passIcon, openPass, setOpenPass, type, ...props }: InputFieldProps) => {
