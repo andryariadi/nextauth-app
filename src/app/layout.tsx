@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 // import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
@@ -32,7 +33,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} antialiased bg-gray-800`}>{children}</body>
+      <body className={`${poppins.variable} antialiased bg-gray-800`}>
+        {children}
+        <Toaster position="top-right" />
+      </body>
     </html>
   );
 }

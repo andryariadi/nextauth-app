@@ -11,9 +11,13 @@ import { FcGoogle } from "react-icons/fc";
 import { ImGithub } from "react-icons/im";
 import InputField from "./InputField";
 import { useState } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { Message, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "@/validators";
+import { sigup } from "@/actions/register";
+import { z } from "zod";
+import toast from "react-hot-toast";
+import { toastStyle } from "@/lib/toastStyle";
 
 const RegisterForm: React.FC = () => {
   const [openPass, setOpenPass] = useState<boolean>(false);
@@ -22,7 +26,7 @@ const RegisterForm: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
   });
 
@@ -31,8 +35,22 @@ const RegisterForm: React.FC = () => {
   const dataPassword = { ...register("password") };
 
   // Event handler for form submission
-  const handleRegister: SubmitHandler<FieldValues> = async (data) => {
-    console.log(data, "<---diregisterform");
+  const handleRegister: SubmitHandler<z.infer<typeof signupSchema>> = async (data) => {
+    try {
+      const res = await sigup(data);
+
+      if (res?.success) {
+        toast.success(res.message as Message, {
+          style: toastStyle,
+        });
+      } else {
+        toast.error(res?.message as Message, {
+          style: toastStyle,
+        });
+      }
+    } catch (error) {
+      console.log("Registration error:", error);
+    }
   };
 
   return (
