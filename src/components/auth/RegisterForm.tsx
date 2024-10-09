@@ -14,7 +14,7 @@ import { useState } from "react";
 import { Message, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "@/validators";
-import { sigup } from "@/actions/register";
+import { sigup } from "@/lib/action";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { toastStyle } from "@/lib/toastStyle";

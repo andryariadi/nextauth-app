@@ -1,3 +1,4 @@
+import { handleLogout } from "@/lib/action";
 import { auth } from "@/lib/auth";
 
 const SettingsPage = async () => {
@@ -5,7 +6,13 @@ const SettingsPage = async () => {
 
   console.log(session, "<----disettingspage");
 
-  return <div>SettingsPage</div>;
+  return (
+    <div className="bg-rose-600">
+      <form action={handleLogout}>
+        <button>Logout</button>
+      </form>
+    </div>
+  );
 };
 
 export default SettingsPage;

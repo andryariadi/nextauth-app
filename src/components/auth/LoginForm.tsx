@@ -10,38 +10,75 @@ import { BiLoaderCircle } from "react-icons/bi";
 import { FcGoogle } from "react-icons/fc";
 import { ImGithub } from "react-icons/im";
 import InputField from "./InputField";
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { loginSchema } from "@/validators";
+import { login } from "@/lib/action";
+import { useRouter } from "next/navigation";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes/routes";
 
-// Define the shape of the input state
-interface InputState {
-  email: string;
-  password: string;
-}
+// interface InputState {
+//   email: string;
+//   password: string;
+// }
 
 const LoginForm: React.FC = () => {
+  const router = useRouter();
   const [openPass, setOpenPass] = useState<boolean>(false);
-  const isLoading = false;
 
-  // Define the input state with the shape specified by the interface
-  const [input, setInput] = useState<InputState>({
-    email: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
   });
 
-  // Event handler for handling input changes
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
-    setInput((prevInput) => ({
-      ...prevInput,
-      [name]: value,
-    }));
+  const dataEmail = { ...register("email") };
+  const dataPassword = { ...register("password") };
+
+  const handleLogin: SubmitHandler<z.infer<typeof loginSchema>> = async (data) => {
+    await login(data);
+    router.push(DEFAULT_LOGIN_REDIRECT);
   };
 
-  // Event handler for form submission
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    console.log("masuk nih bree");
-  };
+  // Old Way
+  // const [isLoading, setisLoading] = useState<boolean>(false);
+  // const [isError, setIsError] = useState<InputState>({
+  //   email: "",
+  //   password: "",
+  // });
+
+  // const [input, setInput] = useState<InputState>({
+  //   email: "",
+  //   password: "",
+  // });
+
+  // const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  //   const { name, value } = e.target;
+  //   setInput((prevInput) => ({
+  //     ...prevInput,
+  //     [name]: value,
+  //   }));
+  // };
+
+  // const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  //   e.preventDefault();
+  //   setisLoading(true);
+
+  //   try {
+  //     const res = await login(input);
+  //     const errorBre = JSON.parse(res?.error as string);
+  //     setIsError(errorBre.errors);
+  //     router.push(DEFAULT_LOGIN_REDIRECT);
+  //   } catch (error) {
+  //     console.log(error);
+  //   } finally {
+  //     setisLoading(false);
+  //   }
+  // };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md bg-gray-700 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl text-gray-400">
@@ -50,39 +87,44 @@ const LoginForm: React.FC = () => {
         <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text">Welcome Back</h2>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <div className="bg-violt-500 bg-ros-500 flex flex-col gap-4">
-            <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" name="email" value={input.email} onChange={handleChange} />
+        <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6">
+          <div className="bg-violt-500 bg-ros-500 flex flex-col gap-8">
+            <div className="relative">
+              <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" name="email" propData={dataEmail} />
 
-            <InputField
-              icon={<Lock size={22} />}
-              passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
-              openPass={openPass}
-              setOpenPass={setOpenPass}
-              type={openPass ? "text" : "password"}
-              placeholder="Password"
-              name="password"
-              value={input.password}
-              onChange={handleChange}
-            />
+              {errors.email && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.email.message as string}</p>}
+            </div>
+
+            <div className="relative">
+              <InputField
+                icon={<Lock size={22} />}
+                passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
+                openPass={openPass}
+                setOpenPass={setOpenPass}
+                type={openPass ? "text" : "password"}
+                placeholder="Password"
+                name="password"
+                propData={dataPassword}
+              />
+
+              {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message as string}</p>}
+            </div>
           </div>
 
-          <div>
+          <div className="mt-2">
             <Link href="/forgot-password" className="text-green-500 text-sm inline-block hover:scale-105 transition-all duration-300">
               Forgot Password?
             </Link>
           </div>
-
-          {/* {error && <p className="text-red-500 text-sm">{error}</p>} */}
 
           <motion.button
             className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.95 }}
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
-            {isLoading ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Login"}
+            {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Login"}
           </motion.button>
 
           <div className="flex flex-col items-center justify-center gap-4">
