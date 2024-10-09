@@ -11,6 +11,7 @@ const SettingsPage = async () => {
       <form action={handleLogout}>
         <button>Logout</button>
       </form>
+      <h1>{JSON.stringify(session)}</h1>
     </div>
   );
 };

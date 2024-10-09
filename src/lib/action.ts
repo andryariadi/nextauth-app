@@ -7,7 +7,7 @@ import prisma from "@/lib/db";
 import { signIn, signOut } from "@/lib/auth";
 import { AuthError } from "next-auth";
 
-export const sigup = async ({ username, email, password }: z.infer<typeof signupSchema>) => {
+export const sigup = async ({ name, email, password }: z.infer<typeof signupSchema>) => {
   try {
     const existingUser = await prisma.user.findUnique({
       where: {
@@ -21,7 +21,7 @@ export const sigup = async ({ username, email, password }: z.infer<typeof signup
 
     const user = await prisma.user.create({
       data: {
-        username,
+        name,
         email,
         password: hashedPassword,
       },

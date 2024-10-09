@@ -30,7 +30,7 @@ const RegisterForm: React.FC = () => {
     resolver: zodResolver(signupSchema),
   });
 
-  const dataUsername = { ...register("username") };
+  const dataUsername = { ...register("name") };
   const dataEmail = { ...register("email") };
   const dataPassword = { ...register("password") };
 
@@ -65,7 +65,7 @@ const RegisterForm: React.FC = () => {
             <div className="relative">
               <InputField icon={<UserRound size={22} />} type="text" placeholder="Username" propData={dataUsername} />
 
-              {errors.username && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.username.message as string}</p>}
+              {errors.name && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.name.message as string}</p>}
             </div>
 
             <div className="relative">

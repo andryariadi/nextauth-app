@@ -18,15 +18,21 @@ import { loginSchema } from "@/validators";
 import { login } from "@/lib/action";
 import { useRouter } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes/routes";
+import toast from "react-hot-toast";
+import { toastStyle } from "@/lib/toastStyle";
 
-// interface InputState {
-//   email: string;
-//   password: string;
-// }
+interface InputState {
+  email: string;
+  password: string;
+}
 
 const LoginForm: React.FC = () => {
   const router = useRouter();
   const [openPass, setOpenPass] = useState<boolean>(false);
+  const [isError, setIsError] = useState<InputState>({
+    email: "",
+    password: "",
+  });
 
   const {
     register,
@@ -40,8 +46,36 @@ const LoginForm: React.FC = () => {
   const dataPassword = { ...register("password") };
 
   const handleLogin: SubmitHandler<z.infer<typeof loginSchema>> = async (data) => {
-    await login(data);
-    router.push(DEFAULT_LOGIN_REDIRECT);
+    try {
+      const res = await login(data);
+
+      const error = JSON.parse(res?.error as string);
+      console.log(error, "<---handleLogin1");
+
+      setIsError(error.errors);
+
+      if (isError && isError.email) {
+        toast.error(isError.email, {
+          style: toastStyle,
+        });
+      }
+
+      if (isError && isError.password) {
+        toast.error(isError.password, {
+          style: toastStyle,
+        });
+      }
+
+      if (!error) {
+        toast.success("Login Successful!", {
+          style: toastStyle,
+        });
+      }
+
+      router.push(DEFAULT_LOGIN_REDIRECT);
+    } catch (error) {
+      console.log(error, "<---handleLogin");
+    }
   };
 
   // Old Way
