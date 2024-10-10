@@ -7,8 +7,6 @@ import { PiEye } from "react-icons/pi";
 import { RiEyeCloseFill } from "react-icons/ri";
 import { Lock } from "lucide-react";
 import { BiLoaderCircle } from "react-icons/bi";
-import { FcGoogle } from "react-icons/fc";
-import { ImGithub } from "react-icons/im";
 import InputField from "./InputField";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -20,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes/routes";
 import toast from "react-hot-toast";
 import { toastStyle } from "@/lib/toastStyle";
+import Oatuh from "./Oatuh";
 
 interface InputState {
   email: string;
@@ -67,7 +66,7 @@ const LoginForm: React.FC = () => {
       }
 
       if (!error) {
-        toast.success("Login Successful!", {
+        toast.success("Login Successfully!", {
           style: toastStyle,
         });
       }
@@ -160,15 +159,14 @@ const LoginForm: React.FC = () => {
           >
             {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Login"}
           </motion.button>
-
-          <div className="flex flex-col items-center justify-center gap-4">
-            <p className="text-xs">or login with</p>
-            <div className="flex items-center justify-center gap-10">
-              <FcGoogle size={24} className="hover:scale-110 transition-all duration-300 cursor-pointer" />
-              <ImGithub size={24} className="hover:scale-110 transition-all duration-300 cursor-pointer" />
-            </div>
-          </div>
         </form>
+
+        {/* OAuth */}
+        <div className="flex flex-col items-center justify-center gap-4">
+          <p className="text-xs">or login with</p>
+          {/* Tempatkan OAuth diluar form agar bisa memakai signIn dari Server Action atau dari NextAuth/React */}
+          <Oatuh />
+        </div>
       </div>
 
       {/* Bottom */}

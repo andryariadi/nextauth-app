@@ -7,8 +7,6 @@ import { PiEye } from "react-icons/pi";
 import { RiEyeCloseFill } from "react-icons/ri";
 import { Lock, UserRound } from "lucide-react";
 import { BiLoaderCircle } from "react-icons/bi";
-import { FcGoogle } from "react-icons/fc";
-import { ImGithub } from "react-icons/im";
 import InputField from "./InputField";
 import { useState } from "react";
 import { Message, SubmitHandler, useForm } from "react-hook-form";
@@ -18,6 +16,7 @@ import { sigup } from "@/lib/action";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { toastStyle } from "@/lib/toastStyle";
+import Oatuh from "@/components/auth/Oatuh";
 
 const RegisterForm: React.FC = () => {
   const [openPass, setOpenPass] = useState<boolean>(false);
@@ -98,15 +97,14 @@ const RegisterForm: React.FC = () => {
           >
             {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Register"}
           </motion.button>
-
-          <div className="flex flex-col items-center justify-center gap-4">
-            <p className="text-xs">or sigup with</p>
-            <div className="flex items-center justify-center gap-10">
-              <FcGoogle size={24} className="hover:scale-110 transition-all duration-300 cursor-pointer" />
-              <ImGithub size={24} className="hover:scale-110 transition-all duration-300 cursor-pointer" />
-            </div>
-          </div>
         </form>
+
+        {/* OAuth */}
+        <div className="flex flex-col items-center justify-center gap-4">
+          <p className="text-xs">or sigup with</p>
+          {/* Tempatkan OAuth diluar form agar bisa memakai signIn dari Server Action atau dari NextAuth/React */}
+          <Oatuh />
+        </div>
       </div>
 
       {/* Bottom */}

@@ -7,6 +7,14 @@ import prisma from "@/lib/db";
 import { signIn, signOut } from "@/lib/auth";
 import { AuthError } from "next-auth";
 
+export const handleGithubLogin = async () => {
+  await signIn("github");
+};
+
+export const handleGoogleLogin = async () => {
+  await signIn("google");
+};
+
 export const sigup = async ({ name, email, password }: z.infer<typeof signupSchema>) => {
   try {
     const existingUser = await prisma.user.findUnique({
