@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { loginSchema } from "@/validators";
 import { login } from "@/lib/action";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes/routes";
 import toast from "react-hot-toast";
 import { toastStyle } from "@/lib/toastStyle";
@@ -28,6 +28,10 @@ interface InputState {
 const LoginForm: React.FC = () => {
   const router = useRouter();
   const [openPass, setOpenPass] = useState<boolean>(false);
+
+  const searchParams = useSearchParams();
+  const errorUrl = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider!" : "";
+
   const [isError, setIsError] = useState<InputState>({
     email: "",
     password: "",
@@ -149,6 +153,8 @@ const LoginForm: React.FC = () => {
               Forgot Password?
             </Link>
           </div>
+
+          <span className="text-red-500 text-sm">{errorUrl}</span>
 
           <motion.button
             className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
