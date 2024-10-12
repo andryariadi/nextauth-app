@@ -32,6 +32,25 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
   },
   callbacks: {
+    async signIn({ user, account }) {
+      console.log({ user, account }, "<---dicallbacksignin");
+
+      // Allow OAuth without email verification
+      if (account?.provider !== "credentials") return true;
+
+      const existingUser = await prisma.user.findUnique({
+        where: {
+          id: user.id,
+        },
+      });
+
+      console.log({ existingUser }, "<---dicallbacksignin2");
+
+      // Prevent sign in if email is not verified
+      if (!existingUser?.emailVerified) return false;
+
+      return true;
+    },
     async jwt({ token, user }) {
       console.log({ token, user }, "<---dicallbackjwt");
 

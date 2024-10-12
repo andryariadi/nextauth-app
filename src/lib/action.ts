@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
 import { signIn, signOut } from "@/lib/auth";
 import { AuthError } from "next-auth";
+import { generateVerificationToken } from "./tokens";
+import { sendVerificationEmail } from "./mail";
 
 export const handleGithubLogin = async () => {
   await signIn("github");
@@ -35,7 +37,11 @@ export const sigup = async ({ name, email, password }: z.infer<typeof signupSche
       },
     });
 
-    if (user) return { success: true, message: "User created successfully" };
+    const verificationToken = await generateVerificationToken(email);
+
+    await sendVerificationEmail(verificationToken.email, verificationToken.token);
+
+    if (user && verificationToken) return { success: true, usermessage: "User created successfully!", tokenmessage: "Confirmation email sent!" };
   } catch (error) {
     console.log(error, "<--disignupserver");
     return { success: false, message: "An error occurred during user creation" };
@@ -46,6 +52,20 @@ export const login = async ({ email, password }: z.infer<typeof loginSchema>) =>
   console.log(email, password, "<---diloginserver");
 
   try {
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!existingUser || !existingUser.email || !existingUser.password) return { error: "Email does not exist!" };
+
+    if (!existingUser.emailVerified) {
+      const verificationToken = await generateVerificationToken(email);
+
+      return { succes: "Confirmation email sent!" };
+    }
+
     await signIn("credentials", {
       email,
       password,

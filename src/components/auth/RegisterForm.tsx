@@ -17,9 +17,11 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { toastStyle } from "@/lib/toastStyle";
 import Oatuh from "@/components/auth/Oatuh";
+import { GoCheckCircle } from "react-icons/go";
 
 const RegisterForm: React.FC = () => {
   const [openPass, setOpenPass] = useState<boolean>(false);
+  const [tokenMessage, setTokenMessage] = useState("");
 
   const {
     register,
@@ -38,8 +40,10 @@ const RegisterForm: React.FC = () => {
     try {
       const res = await sigup(data);
 
-      if (res?.success) {
-        toast.success(res.message as Message, {
+      console.log(res, "<---diregisterForm");
+
+      if (res?.usermessage) {
+        toast.success(res.usermessage as Message, {
           style: toastStyle,
         });
       } else {
@@ -47,6 +51,8 @@ const RegisterForm: React.FC = () => {
           style: toastStyle,
         });
       }
+
+      setTokenMessage(res?.tokenmessage as Message);
     } catch (error) {
       console.log("Registration error:", error);
     }
@@ -87,6 +93,13 @@ const RegisterForm: React.FC = () => {
               {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message as string}</p>}
             </div>
           </div>
+
+          {tokenMessage && (
+            <div className="flex items-center justify-center gap-2 bg-emerald-400 bg-opacity-20 rounded-lg p-2 text-emerald-400">
+              <GoCheckCircle size={20} />
+              <p>{tokenMessage}</p>
+            </div>
+          )}
 
           <motion.button
             className="w-full py-3 px-4 mt-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"

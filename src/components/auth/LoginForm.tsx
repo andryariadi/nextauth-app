@@ -19,6 +19,7 @@ import { DEFAULT_LOGIN_REDIRECT } from "@/routes/routes";
 import toast from "react-hot-toast";
 import { toastStyle } from "@/lib/toastStyle";
 import Oatuh from "./Oatuh";
+import { GoCheckCircle } from "react-icons/go";
 
 interface InputState {
   email: string;
@@ -28,6 +29,7 @@ interface InputState {
 const LoginForm: React.FC = () => {
   const router = useRouter();
   const [openPass, setOpenPass] = useState<boolean>(false);
+  const [tokenMessage, setTokenMessage] = useState("");
 
   const searchParams = useSearchParams();
   const errorUrl = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider!" : "";
@@ -51,6 +53,8 @@ const LoginForm: React.FC = () => {
   const handleLogin: SubmitHandler<z.infer<typeof loginSchema>> = async (data) => {
     try {
       const res = await login(data);
+
+      setTokenMessage(res?.succes as string);
 
       const error = JSON.parse(res?.error as string);
       console.log(error, "<---handleLogin1");
@@ -155,6 +159,13 @@ const LoginForm: React.FC = () => {
           </div>
 
           <span className="text-red-500 text-sm">{errorUrl}</span>
+
+          {tokenMessage && (
+            <div className="flex items-center justify-center gap-2 bg-emerald-400 bg-opacity-20 rounded-lg p-2 text-emerald-400">
+              <GoCheckCircle size={20} />
+              <p>{tokenMessage}</p>
+            </div>
+          )}
 
           <motion.button
             className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
