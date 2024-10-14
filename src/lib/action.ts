@@ -58,10 +58,14 @@ export const login = async ({ email, password }: z.infer<typeof loginSchema>) =>
       },
     });
 
+    console.log(existingUser, "<---diloginserever2");
+
     if (!existingUser || !existingUser.email || !existingUser.password) return { error: "Email does not exist!" };
 
     if (!existingUser.emailVerified) {
       const verificationToken = await generateVerificationToken(email);
+
+      await sendVerificationEmail(verificationToken.email, verificationToken.token);
 
       return { succes: "Confirmation email sent!" };
     }
@@ -89,4 +93,50 @@ export const login = async ({ email, password }: z.infer<typeof loginSchema>) =>
 
 export const handleLogout = async () => {
   await signOut();
+};
+
+export const newVerification = async (token: string) => {
+  console.log(token, "<---dinewverificationserver");
+
+  const existingToken = await prisma.verificationToken.findUnique({
+    where: {
+      token,
+    },
+  });
+
+  console.log(existingToken, "<---dinewverificationserver2");
+
+  if (!existingToken) return { error: "Token does not exist!" };
+
+  const hasExpired = new Date(existingToken.expires) < new Date();
+
+  if (hasExpired) return { error: "Token has expired!" };
+
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email: existingToken.email,
+    },
+  });
+
+  console.log(existingUser, "<---dinewverificationserver3");
+
+  if (!existingUser) return { error: "User does not exist!" };
+
+  await prisma.user.update({
+    where: {
+      id: existingUser.id,
+    },
+    data: {
+      emailVerified: new Date(),
+      email: existingToken.email,
+    },
+  });
+
+  await prisma.verificationToken.delete({
+    where: {
+      id: existingToken.id,
+    },
+  });
+
+  return { success: "Email verified!" };
 };

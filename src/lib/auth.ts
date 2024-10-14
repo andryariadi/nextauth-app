@@ -23,6 +23,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async linkAccount({ user }) {
       console.log({ user }, "<---dilinkaccount");
 
+      // Update emailVerified for OAuth users
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -32,8 +33,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
   },
   callbacks: {
-    async signIn({ user, account }) {
-      console.log({ user, account }, "<---dicallbacksignin");
+    async signIn({ user, account, profile }) {
+      console.log({ user, account, profile }, "<---dicallbacksignin");
 
       // Allow OAuth without email verification
       if (account?.provider !== "credentials") return true;
