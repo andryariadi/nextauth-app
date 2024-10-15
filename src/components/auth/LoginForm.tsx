@@ -153,7 +153,7 @@ const LoginForm: React.FC = () => {
           </div>
 
           <div className="mt-2">
-            <Link href="/forgot-password" className="text-green-500 text-sm inline-block hover:scale-105 transition-all duration-300">
+            <Link href="/auth/reset-password" className="text-green-500 text-sm inline-block hover:scale-105 transition-all duration-300">
               Forgot Password?
             </Link>
           </div>

@@ -17,24 +17,30 @@ const NewVerificationPage = () => {
 
   const token = searchParams.get("token");
 
-  const handleSubmit = useCallback(() => {
-    console.log(token, "<---newverificationpage");
+  const handleSubmit = useCallback(async () => {
+    try {
+      if (succes || error) return;
 
-    if (!token) {
-      setError("Missing token!");
-      return;
-    }
+      console.log(token, "<---newverificationpage");
 
-    newVerification(token)
-      .then((data) => {
-        console.log(data, "<---newverificationpage2");
-        setSucces(data?.success);
-        setError(data?.error);
-      })
-      .catch((error) => {
+      if (!token) {
+        setError("Missing token!");
+        return;
+      }
+
+      const data = await newVerification(token);
+      console.log(data, "<---newverificationpage2");
+
+      setSucces(data?.success);
+      setError(data?.error);
+    } catch (error) {
+      if (error instanceof Error) {
         setError(error.message);
-      });
-  }, [token]);
+      } else {
+        setError(String(error));
+      }
+    }
+  }, [token, succes, error]);
 
   useEffect(() => {
     handleSubmit();
@@ -56,7 +62,7 @@ const NewVerificationPage = () => {
           </div>
         )}
 
-        {error && (
+        {!succes && error && (
           <div className="flex items-center justify-center gap-2 bg-rose-500 bg-opacity-20 rounded-lg p-2 text-rose-500">
             <CiWarning size={20} />
             <p>{error}</p>

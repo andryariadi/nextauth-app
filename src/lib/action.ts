@@ -1,6 +1,6 @@
 "use server";
 
-import { loginSchema, signupSchema } from "@/validators";
+import { loginSchema, resetSchema, signupSchema } from "@/validators";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
@@ -139,4 +139,20 @@ export const newVerification = async (token: string) => {
   });
 
   return { success: "Email verified!" };
+};
+
+export const resetPassword = async ({ email }: z.infer<typeof resetSchema>) => {
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!existingUser) return { error: "Email not found!" };
+
+    return { success: "Reset email sent!" };
+  } catch (error) {
+    console.log(error, "<---diresetpasswordserver");
+  }
 };
