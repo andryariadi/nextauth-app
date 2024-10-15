@@ -1,13 +1,13 @@
 "use server";
 
-import { loginSchema, resetSchema, signupSchema } from "@/validators";
+import { loginSchema, newPasswordSchema, resetSchema, signupSchema } from "@/validators";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
 import { signIn, signOut } from "@/lib/auth";
 import { AuthError } from "next-auth";
-import { generateVerificationToken } from "./tokens";
-import { sendVerificationEmail } from "./mail";
+import { generateResetPasswordToken, generateVerificationToken } from "./tokens";
+import { sendResetPasswordEmail, sendVerificationEmail } from "./mail";
 
 export const handleGithubLogin = async () => {
   await signIn("github");
@@ -151,8 +151,58 @@ export const resetPassword = async ({ email }: z.infer<typeof resetSchema>) => {
 
     if (!existingUser) return { error: "Email not found!" };
 
+    const resetPasswordToken = await generateResetPasswordToken(email);
+
+    await sendResetPasswordEmail(resetPasswordToken.email, resetPasswordToken.token);
+
     return { success: "Reset email sent!" };
   } catch (error) {
     console.log(error, "<---diresetpasswordserver");
+  }
+};
+
+export const newPassword = async ({ password }: z.infer<typeof newPasswordSchema>, token: string | null) => {
+  try {
+    console.log({ password, token }, "<---dinewpasswordserver");
+
+    if (!token) return { error: "Missing token!" };
+
+    const existingToken = await prisma.resetPasswordToken.findUnique({
+      where: {
+        token,
+      },
+    });
+    if (!existingToken) return { error: "Invalid token!" };
+
+    const hasExpired = new Date(existingToken.expires) < new Date();
+    if (hasExpired) return { error: "Token has expired!" };
+
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email: existingToken.email,
+      },
+    });
+    if (!existingUser) return { error: "Email does not exist!" };
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.update({
+      where: {
+        id: existingUser.id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    await prisma.resetPasswordToken.delete({
+      where: {
+        id: existingToken.id,
+      },
+    });
+
+    return { success: "Password reset successfully!" };
+  } catch (error) {
+    console.log(error);
   }
 };

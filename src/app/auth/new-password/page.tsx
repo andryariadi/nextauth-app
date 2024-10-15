@@ -1,21 +1,29 @@
 "use client";
 
 import InputField from "@/components/auth/InputField";
-import { resetPassword } from "@/lib/action";
-import { resetSchema } from "@/validators";
+import { newPassword } from "@/lib/action";
+import { newPasswordSchema } from "@/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
+import { Lock } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { BiLoaderCircle } from "react-icons/bi";
 import { CiWarning } from "react-icons/ci";
 import { GoCheckCircle } from "react-icons/go";
 import { IoIosArrowRoundBack } from "react-icons/io";
-import { IoMailOutline } from "react-icons/io5";
+import { PiEye } from "react-icons/pi";
+import { RiEyeCloseFill } from "react-icons/ri";
 import { z } from "zod";
 
-const ResetPasswordPage = () => {
+const NewPasswordPage = () => {
+  const [openPass, setOpenPass] = useState<boolean>(false);
+
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
   const [succes, setSucces] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
 
@@ -23,16 +31,16 @@ const ResetPasswordPage = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<z.infer<typeof resetSchema>>({
-    resolver: zodResolver(resetSchema),
+  } = useForm<z.infer<typeof newPasswordSchema>>({
+    resolver: zodResolver(newPasswordSchema),
   });
 
-  const dataEmail = { ...register("email") };
+  const dataPassword = { ...register("password") };
 
-  const handleResetPassword: SubmitHandler<z.infer<typeof resetSchema>> = async (data) => {
+  const handleNewPassword: SubmitHandler<z.infer<typeof newPasswordSchema>> = async (data) => {
     try {
-      const res = await resetPassword(data);
-      console.log(res, "<---diresetpasswordpage");
+      const res = await newPassword(data, token as string | null);
+      console.log(res, "<---dinewpasswordpage");
 
       setSucces(res?.success);
       setError(res?.error);
@@ -47,16 +55,25 @@ const ResetPasswordPage = () => {
         <div className="space-y-2 text-center">
           <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text">Reset Password</h2>
 
-          <p className="text-sm">Forgot your password? Enter your email address and we will send you a link to reset it.</p>
+          <p className="text-sm">Forgot your password? No problem. Just let us know your new password below.</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(handleResetPassword)} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit(handleNewPassword)} className="flex flex-col gap-5">
           <div className="bg-violt-500 bg-ros-500 flex flex-col gap-8">
             <div className="relative">
-              <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" name="email" propData={dataEmail} />
+              <InputField
+                icon={<Lock size={22} />}
+                passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
+                openPass={openPass}
+                setOpenPass={setOpenPass}
+                type={openPass ? "text" : "password"}
+                placeholder="Enter your new password"
+                name="password"
+                propData={dataPassword}
+              />
 
-              {errors.email && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.email.message as string}</p>}
+              {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message as string}</p>}
             </div>
           </div>
 
@@ -75,13 +92,13 @@ const ResetPasswordPage = () => {
           )}
 
           <motion.button
-            className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
+            className="w-full py-3 px-4 mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.95 }}
             type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Send reset email"}
+            {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Reset password"}
           </motion.button>
         </form>
       </div>
@@ -96,4 +113,4 @@ const ResetPasswordPage = () => {
   );
 };
 
-export default ResetPasswordPage;
+export default NewPasswordPage;
