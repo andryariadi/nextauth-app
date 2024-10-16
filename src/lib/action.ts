@@ -6,8 +6,8 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
 import { signIn, signOut } from "@/lib/auth";
 import { AuthError } from "next-auth";
-import { generateResetPasswordToken, generateVerificationToken } from "./tokens";
-import { sendResetPasswordEmail, sendVerificationEmail } from "./mail";
+import { generateResetPasswordToken, generateTwoFactorToken, generateVerificationToken } from "./tokens";
+import { sendResetPasswordEmail, sendTwoFactorTokenEmail, sendVerificationEmail } from "./mail";
 
 export const handleGithubLogin = async () => {
   await signIn("github");
@@ -48,8 +48,8 @@ export const sigup = async ({ name, email, password }: z.infer<typeof signupSche
   }
 };
 
-export const login = async ({ email, password }: z.infer<typeof loginSchema>) => {
-  console.log(email, password, "<---diloginserver");
+export const login = async ({ email, password, code }: z.infer<typeof loginSchema>) => {
+  console.log({ email, password, code }, "<---diloginserver1");
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -67,7 +67,49 @@ export const login = async ({ email, password }: z.infer<typeof loginSchema>) =>
 
       await sendVerificationEmail(verificationToken.email, verificationToken.token);
 
-      return { succes: "Confirmation email sent!" };
+      return { success: "Confirmation email sent!" };
+    }
+
+    if (existingUser.isTwoFactorEnabled && existingUser.email) {
+      if (code) {
+        const twoFactorToken = await prisma.twoFactorToken.findFirst({
+          where: {
+            email: existingUser.email,
+          },
+        });
+
+        if (!twoFactorToken) return { error: "Invalid code!" };
+
+        if (twoFactorToken.token !== code) return { error: "Invalid code!" };
+
+        const hasExpired = new Date(twoFactorToken.expires) < new Date();
+        if (hasExpired) return { error: "Code has expired!" };
+
+        await prisma.twoFactorToken.delete({
+          where: {
+            id: twoFactorToken.id,
+          },
+        });
+
+        const existingTwoFoctorConfirmation = await prisma.twoFactorConfirmation.findUnique({ where: { userId: existingUser.id } });
+
+        if (existingTwoFoctorConfirmation) {
+          await prisma.twoFactorConfirmation.delete({
+            where: {
+              id: existingTwoFoctorConfirmation.id,
+            },
+          });
+        }
+
+        await prisma.twoFactorConfirmation.create({
+          data: { userId: existingUser.id },
+        });
+      } else {
+        const twoFactorToken = await generateTwoFactorToken(existingUser.email);
+        await sendTwoFactorTokenEmail(existingUser.email, twoFactorToken.token);
+
+        return { twoFactor: true };
+      }
     }
 
     await signIn("credentials", {

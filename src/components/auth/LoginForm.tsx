@@ -30,6 +30,7 @@ const LoginForm: React.FC = () => {
   const router = useRouter();
   const [openPass, setOpenPass] = useState<boolean>(false);
   const [tokenMessage, setTokenMessage] = useState("");
+  const [showTwoFactor, setShowTwoFactor] = useState(false);
 
   const searchParams = useSearchParams();
   const errorUrl = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider!" : "";
@@ -43,18 +44,29 @@ const LoginForm: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset,
   } = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
   });
 
   const dataEmail = { ...register("email") };
   const dataPassword = { ...register("password") };
+  const dataCode = { ...register("code") };
 
   const handleLogin: SubmitHandler<z.infer<typeof loginSchema>> = async (data) => {
     try {
       const res = await login(data);
 
-      setTokenMessage(res?.succes as string);
+      console.log(res, "<---handleLogin");
+
+      if (res?.success) {
+        setTokenMessage(res?.success as string);
+        reset();
+      }
+
+      if (res?.twoFactor) {
+        setShowTwoFactor(res?.twoFactor as boolean);
+      }
 
       const error = JSON.parse(res?.error as string);
       console.log(error, "<---handleLogin1");
@@ -73,7 +85,7 @@ const LoginForm: React.FC = () => {
         });
       }
 
-      if (!error) {
+      if (!res?.error && !res?.success && !res?.twoFactor) {
         toast.success("Login Successfully!", {
           style: toastStyle,
         });
@@ -121,6 +133,8 @@ const LoginForm: React.FC = () => {
   //   }
   // };
 
+  console.log(showTwoFactor, "<---showtwofactor");
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md bg-gray-700 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl text-gray-400">
       {/* Top */}
@@ -129,34 +143,46 @@ const LoginForm: React.FC = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6">
-          <div className="bg-violt-500 bg-ros-500 flex flex-col gap-8">
+          {!showTwoFactor && (
+            <>
+              <div className="bg-violt-500 bg-ros-500 flex flex-col gap-8">
+                <div className="relative">
+                  <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" name="email" propData={dataEmail} />
+
+                  {errors.email && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.email.message as string}</p>}
+                </div>
+
+                <div className="relative">
+                  <InputField
+                    icon={<Lock size={22} />}
+                    passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
+                    openPass={openPass}
+                    setOpenPass={setOpenPass}
+                    type={openPass ? "text" : "password"}
+                    placeholder="Password"
+                    name="password"
+                    propData={dataPassword}
+                  />
+
+                  {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message as string}</p>}
+                </div>
+              </div>
+
+              <div className="mt-2">
+                <Link href="/auth/reset-password" className="text-green-500 text-sm inline-block hover:scale-105 transition-all duration-300">
+                  Forgot Password?
+                </Link>
+              </div>
+            </>
+          )}
+
+          {showTwoFactor && (
             <div className="relative">
-              <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" name="email" propData={dataEmail} />
+              <InputField icon={<IoMailOutline size={22} />} type="text" placeholder="Enter your code" name="code" propData={dataCode} />
 
-              {errors.email && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.email.message as string}</p>}
+              {errors.code && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.code.message as string}</p>}
             </div>
-
-            <div className="relative">
-              <InputField
-                icon={<Lock size={22} />}
-                passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
-                openPass={openPass}
-                setOpenPass={setOpenPass}
-                type={openPass ? "text" : "password"}
-                placeholder="Password"
-                name="password"
-                propData={dataPassword}
-              />
-
-              {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message as string}</p>}
-            </div>
-          </div>
-
-          <div className="mt-2">
-            <Link href="/auth/reset-password" className="text-green-500 text-sm inline-block hover:scale-105 transition-all duration-300">
-              Forgot Password?
-            </Link>
-          </div>
+          )}
 
           <span className="text-red-500 text-sm">{errorUrl}</span>
 
@@ -174,7 +200,7 @@ const LoginForm: React.FC = () => {
             type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : "Login"}
+            {isSubmitting ? <BiLoaderCircle size={22} className="animate-spin mx-auto" /> : showTwoFactor ? "Confirm" : "Login"}
           </motion.button>
         </form>
 

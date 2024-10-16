@@ -50,6 +50,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       // Prevent sign in if email is not verified
       if (!existingUser?.emailVerified) return false;
 
+      // Prevent sign in if 2FA is enabled
+      if (existingUser.isTwoFactorEnabled) {
+        const twoFactorConfirmation = await prisma.twoFactorConfirmation.findUnique({
+          where: {
+            userId: existingUser.id,
+          },
+        });
+
+        console.log({ twoFactorConfirmation }, "<---dicallbacksignin3");
+
+        if (!twoFactorConfirmation) return false;
+
+        // Delete two factor confirmation for new sign in
+        await prisma.twoFactorConfirmation.delete({
+          where: {
+            id: twoFactorConfirmation.id,
+          },
+        });
+      }
+
       return true;
     },
     async jwt({ token, user }) {
