@@ -50,7 +50,7 @@ export default {
               JSON.stringify({
                 success: false,
                 error: true,
-                errors: { email: ["User not found or Invalid email!"] },
+                errors: { email: "User not found or Invalid email!" },
               })
             );
           }
@@ -62,7 +62,7 @@ export default {
               JSON.stringify({
                 success: false,
                 error: true,
-                errors: { password: ["Invalid password!"] },
+                errors: { password: "Invalid password!" },
               })
             );
           }

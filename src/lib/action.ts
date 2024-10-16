@@ -60,7 +60,9 @@ export const login = async ({ email, password, code }: z.infer<typeof loginSchem
 
     console.log(existingUser, "<---diloginserever2");
 
-    if (!existingUser || !existingUser.email || !existingUser.password) return { error: "Email does not exist!" };
+    if (!existingUser || !existingUser.email) return { error: "Email does not exist!" };
+
+    if (!existingUser || !existingUser.password) return { error: "Password does not exist!" };
 
     if (!existingUser.emailVerified) {
       const verificationToken = await generateVerificationToken(email);
@@ -124,6 +126,7 @@ export const login = async ({ email, password, code }: z.infer<typeof loginSchem
           return { error: "Invalid email or password!" };
         case "CallbackRouteError":
           const errorCause = error.cause?.err?.message;
+          console.log(errorCause, "<---diloginserver3");
           return { error: errorCause };
         default:
           return { error: "Something went wrong!" };

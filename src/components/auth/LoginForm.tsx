@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import { toastStyle } from "@/lib/toastStyle";
 import Oatuh from "./Oatuh";
 import { GoCheckCircle } from "react-icons/go";
+import { CiWarning } from "react-icons/ci";
 
 interface InputState {
   email: string;
@@ -30,6 +31,7 @@ const LoginForm: React.FC = () => {
   const router = useRouter();
   const [openPass, setOpenPass] = useState<boolean>(false);
   const [tokenMessage, setTokenMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showTwoFactor, setShowTwoFactor] = useState(false);
 
   const searchParams = useSearchParams();
@@ -57,36 +59,26 @@ const LoginForm: React.FC = () => {
     try {
       const res = await login(data);
 
-      console.log(res, "<---handleLogin");
-
       if (res?.success) {
         setTokenMessage(res?.success as string);
         reset();
+      }
+
+      if (res?.error) {
+        setErrorMessage(res?.error as string);
+      }
+
+      const errorJson = JSON.parse(res?.error as string);
+      if (errorJson) {
+        setErrorMessage(errorJson.errors.password);
       }
 
       if (res?.twoFactor) {
         setShowTwoFactor(res?.twoFactor as boolean);
       }
 
-      const error = JSON.parse(res?.error as string);
-      console.log(error, "<---handleLogin1");
-
-      setIsError(error.errors);
-
-      if (isError && isError.email) {
-        toast.error(isError.email, {
-          style: toastStyle,
-        });
-      }
-
-      if (isError && isError.password) {
-        toast.error(isError.password, {
-          style: toastStyle,
-        });
-      }
-
       if (!res?.error && !res?.success && !res?.twoFactor) {
-        toast.success("Login Successfully!", {
+        toast.success("Login successful!", {
           style: toastStyle,
         });
       }
@@ -190,6 +182,13 @@ const LoginForm: React.FC = () => {
             <div className="flex items-center justify-center gap-2 bg-emerald-400 bg-opacity-20 rounded-lg p-2 text-emerald-400">
               <GoCheckCircle size={20} />
               <p>{tokenMessage}</p>
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="flex items-center justify-center gap-2 bg-rose-500 bg-opacity-20 rounded-lg p-2 text-rose-500">
+              <CiWarning size={20} />
+              <p>{errorMessage}</p>
             </div>
           )}
 
