@@ -1,5 +1,14 @@
+"use client";
+
+import useCurrentUser from "@/hooks/useCurrentUser";
+import UserInfo from "../_components/UserInfo";
+
 const ClientPage = () => {
-  return <div className="bg-gray-700 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl text-gray-400 w-full max-w-2xl">ClientPage</div>;
+  const user = useCurrentUser();
+
+  console.log(user, "<---diclientpage");
+
+  return <UserInfo user={user} label="Client Component" />;
 };
 
 export default ClientPage;

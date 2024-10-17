@@ -6,17 +6,23 @@ import { useState } from "react";
 import { HiMiniUser } from "react-icons/hi2";
 import { BiLogOutCircle } from "react-icons/bi";
 import { signOut } from "next-auth/react";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import Image from "next/image";
 
 const Navbar = () => {
   const pathName = usePathname();
   const [open, setOpen] = useState(false);
 
+  const user = useCurrentUser();
+
   const handleLogout = () => {
     signOut();
   };
 
+  console.log(user, "<---dinavbar");
+
   return (
-    <nav className="relative bg-gray-700 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl w-full max-w-2xl flex items-center justify-between p-5">
+    <nav className="relative z-10 bg-gray-700 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl w-full max-w-2xl flex items-center justify-between p-5">
       {/* Right */}
 
       <div className="b-amber-600 flex items-center gap-5 font-semibold">
@@ -40,9 +46,16 @@ const Navbar = () => {
       </div>
 
       {open && (
-        <button onClick={handleLogout} className="absolute top-[5.5rem] right-0 bg-emerald-600 rounded-2xl shadow-xl w-full max-w-20 p-2 flex items-center justify-center">
-          <BiLogOutCircle size={24} className="text-white" />
-        </button>
+        <div className="absolute top-[5.5rem] right-0 bg-emerald-600 rounded-2xl shadow-xl w-full max-w-36 p-2 flex flex-col items-center justify-center gap-2 text-gray-200">
+          <div className="b-amber-500 flex items-center justify-between w-full">
+            {user?.image && <Image src={user?.image} width={40} height={40} alt="Avatar" className="rounded-full object-cover" />}
+            <span className="text-sm font-medium text-nowrap">{user?.name}</span>
+          </div>
+
+          <button onClick={handleLogout} className="self-end">
+            <BiLogOutCircle size={24} />
+          </button>
+        </div>
       )}
     </nav>
   );

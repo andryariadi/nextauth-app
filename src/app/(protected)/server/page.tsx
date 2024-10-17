@@ -1,5 +1,12 @@
-const ServerPage = () => {
-  return <div className="bg-gray-700 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl text-gray-400 w-full max-w-2xl">ServerPage</div>;
+import { currentUser } from "@/lib/currentUser";
+import UserInfo from "../_components/UserInfo";
+
+const ServerPage = async () => {
+  const user = await currentUser();
+
+  console.log(user, "<---diserverpage");
+
+  return <UserInfo user={user} label="Server Component" />;
 };
 
 export default ServerPage;
