@@ -3,6 +3,8 @@ import { Poppins } from "next/font/google";
 // import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { auth } from "@/lib/auth";
+import { SessionProvider } from "next-auth/react";
 
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
@@ -26,17 +28,21 @@ export const metadata: Metadata = {
   description: "Next Auth Authentication with Next.js",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
-    <html lang="en">
-      <body className={`${poppins.variable} antialiased bg-gray-800`}>
-        {children}
-        <Toaster position="top-right" />
-      </body>
-    </html>
+    <SessionProvider session={session}>
+      <html lang="en">
+        <body className={`${poppins.variable} antialiased bg-gray-800`}>
+          {children}
+          <Toaster position="top-right" />
+        </body>
+      </html>
+    </SessionProvider>
   );
 }

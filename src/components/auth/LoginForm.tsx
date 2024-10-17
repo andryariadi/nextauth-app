@@ -22,11 +22,6 @@ import Oatuh from "./Oatuh";
 import { GoCheckCircle } from "react-icons/go";
 import { CiWarning } from "react-icons/ci";
 
-interface InputState {
-  email: string;
-  password: string;
-}
-
 const LoginForm: React.FC = () => {
   const router = useRouter();
   const [openPass, setOpenPass] = useState<boolean>(false);
@@ -36,11 +31,6 @@ const LoginForm: React.FC = () => {
 
   const searchParams = useSearchParams();
   const errorUrl = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider!" : "";
-
-  const [isError, setIsError] = useState<InputState>({
-    email: "",
-    password: "",
-  });
 
   const {
     register,
