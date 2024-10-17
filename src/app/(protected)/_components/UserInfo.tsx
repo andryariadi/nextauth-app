@@ -17,31 +17,43 @@ const UserInfo = ({ user, label }: UserInfoProps) => {
 
       <div className="b-violet-500 flex flex-col gap-3 w-full">
         <div className="b-rose-500 p-3 border-b border-gray-400 w-full flex items-center justify-between">
-          <IoIdCardOutline size={25} />
+          <div className="flex items-center gap-2">
+            <IoIdCardOutline size={25} />
+            <span>ID</span>
+          </div>
           <span>{user?.id}</span>
         </div>
 
         <div className="b-rose-500 p-3 border-b border-gray-400 w-full flex items-center justify-between">
-          <BsPersonVcard size={25} />
+          <div className="flex items-center gap-2">
+            <BsPersonVcard size={25} />
+            <span>Username</span>
+          </div>
           <span>{user?.name}</span>
         </div>
 
         <div className="b-rose-500 p-3 border-b border-gray-400 w-full flex items-center justify-between">
-          <IoMailOutline size={25} />
+          <div className="flex items-center gap-2">
+            <IoMailOutline size={25} />
+            <span>Email</span>
+          </div>
           <span>{user?.email}</span>
         </div>
 
         <div className="b-rose-500 p-3 border-b border-gray-400 w-full flex items-center justify-between">
-          <AiOutlineSecurityScan size={25} />
+          <div className="flex items-center gap-2">
+            <AiOutlineSecurityScan size={25} />
+            <span>Role</span>
+          </div>
           <span>{user?.role}</span>
         </div>
 
         <div className="b-rose-500 p-3 border-b border-gray-400 w-full flex items-center justify-between">
-          <GrUserAdmin size={25} />
           <div className="flex items-center gap-2">
+            <GrUserAdmin size={25} />
             <span>2FA</span>
-            <span className="bg-emerald-500 text-white py-1 px-4 rounded-lg">On</span>
           </div>
+          <span className={`${user?.isTwoFactorEnabled ? "bg-emerald-500" : "bg-rose-500"} text-white py-1 px-4 rounded-lg`}>{user?.isTwoFactorEnabled ? "On" : "Off"}</span>
         </div>
       </div>
     </div>

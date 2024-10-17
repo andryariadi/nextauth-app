@@ -22,7 +22,7 @@ const Navbar = () => {
   console.log(user, "<---dinavbar");
 
   return (
-    <nav className="relative z-10 bg-gray-700 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl w-full max-w-2xl flex items-center justify-between p-5">
+    <nav className="relative z-10 bg-gray-700 rounded-2xl shadow-xl w-full max-w-2xl flex items-center justify-between p-5">
       {/* Right */}
 
       <div className="b-amber-600 flex items-center gap-5 font-semibold">
