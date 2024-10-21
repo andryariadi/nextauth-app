@@ -6,7 +6,7 @@ import { CiWarning } from "react-icons/ci";
 
 interface RoleGateProps {
   children: React.ReactNode;
-  allowedRole: UserRole;
+  allowedRole?: UserRole;
 }
 
 const RoleGate = ({ children, allowedRole }: RoleGateProps) => {

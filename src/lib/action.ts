@@ -1,6 +1,6 @@
 "use server";
 
-import { loginSchema, newPasswordSchema, resetSchema, signupSchema } from "@/validators";
+import { loginSchema, newPasswordSchema, resetSchema, settingSchema, signupSchema } from "@/validators";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
@@ -8,6 +8,8 @@ import { signIn, signOut } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { generateResetPasswordToken, generateTwoFactorToken, generateVerificationToken } from "./tokens";
 import { sendResetPasswordEmail, sendTwoFactorTokenEmail, sendVerificationEmail } from "./mail";
+import { currentRole, currentUser } from "./currentUser";
+import { UserRole } from "@prisma/client";
 
 export const handleGithubLogin = async () => {
   await signIn("github");
@@ -247,6 +249,49 @@ export const newPassword = async ({ password }: z.infer<typeof newPasswordSchema
     });
 
     return { success: "Password reset successfully!" };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const admin = async () => {
+  try {
+    const role = await currentRole();
+
+    if (role !== UserRole.ADMIN) return { error: "Forbidden!" };
+
+    return { success: "Allowed server action!" };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const updateUser = async (data: z.infer<typeof settingSchema>) => {
+  console.log(data, "<---updateUserServer");
+
+  try {
+    const user = await currentUser();
+
+    if (!user) return { error: "Unauthorized!" };
+
+    const dbUser = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+    });
+
+    if (!dbUser) return { error: "Unauthorized!" };
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        ...data,
+      },
+    });
+
+    return { success: "User updated successfully!" };
   } catch (error) {
     console.log(error);
   }

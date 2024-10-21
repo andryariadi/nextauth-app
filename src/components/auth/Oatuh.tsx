@@ -10,6 +10,7 @@ const Oatuh = () => {
       callbackUrl: DEFAULT_LOGIN_REDIRECT,
     });
   };
+
   return (
     <div className="flex items-center justify-center gap-10">
       <button onClick={() => handleOauth("google")}>
