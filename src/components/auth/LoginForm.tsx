@@ -7,6 +7,7 @@ import { PiEye } from "react-icons/pi";
 import { RiEyeCloseFill } from "react-icons/ri";
 import { Lock } from "lucide-react";
 import { BiLoaderCircle } from "react-icons/bi";
+import { RiSortNumberDesc } from "react-icons/ri";
 import InputField from "./InputField";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -36,7 +37,6 @@ const LoginForm: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
   });
@@ -49,22 +49,23 @@ const LoginForm: React.FC = () => {
     try {
       const res = await login(data);
 
+      console.log(res?.twoFactor, "<---diloginpage");
+
       if (res?.success) {
         setTokenMessage(res?.success as string);
-        reset();
       }
 
       if (res?.error) {
         setErrorMessage(res?.error as string);
       }
 
+      if (res?.twoFactor) {
+        setShowTwoFactor(res?.twoFactor as boolean);
+      }
+
       const errorJson = JSON.parse(res?.error as string);
       if (errorJson) {
         setErrorMessage(errorJson.errors.password);
-      }
-
-      if (res?.twoFactor) {
-        setShowTwoFactor(res?.twoFactor as boolean);
       }
 
       if (!res?.error && !res?.success && !res?.twoFactor) {
@@ -160,7 +161,7 @@ const LoginForm: React.FC = () => {
 
           {showTwoFactor && (
             <div className="relative">
-              <InputField icon={<IoMailOutline size={22} />} type="text" placeholder="Enter your code" name="code" propData={dataCode} />
+              <InputField icon={<RiSortNumberDesc size={22} />} type="text" placeholder="Enter your code" name="code" propData={dataCode} />
 
               {errors.code && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.code.message as string}</p>}
             </div>

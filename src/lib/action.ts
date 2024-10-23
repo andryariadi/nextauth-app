@@ -66,6 +66,7 @@ export const login = async ({ email, password, code }: z.infer<typeof loginSchem
 
     if (!existingUser || !existingUser.password) return { error: "Password does not exist!" };
 
+    // Check if email is verified
     if (!existingUser.emailVerified) {
       const verificationToken = await generateVerificationToken(email);
 
@@ -74,6 +75,7 @@ export const login = async ({ email, password, code }: z.infer<typeof loginSchem
       return { success: "Confirmation email sent!" };
     }
 
+    // Handle two-factor authentication if enabled
     if (existingUser.isTwoFactorEnabled && existingUser.email) {
       if (code) {
         const twoFactorToken = await prisma.twoFactorToken.findFirst({
@@ -109,10 +111,11 @@ export const login = async ({ email, password, code }: z.infer<typeof loginSchem
           data: { userId: existingUser.id },
         });
       } else {
+        // Generate and send two-factor token
         const twoFactorToken = await generateTwoFactorToken(existingUser.email);
         await sendTwoFactorTokenEmail(existingUser.email, twoFactorToken.token);
 
-        return { twoFactor: true };
+        return { twoFactor: true, success: "Two factor code email sent!" };
       }
     }
 
@@ -281,6 +284,42 @@ export const updateUser = async (data: z.infer<typeof settingSchema>) => {
     });
 
     if (!dbUser) return { error: "Unauthorized!" };
+
+    // Prevent user OAuth cannot update this data
+    if (user.isOAuth) {
+      data.email = undefined;
+      data.password = undefined;
+      data.newPassword = undefined;
+      data.isTwoFactorEnabled = undefined;
+    }
+
+    // Prevent if user trying update email
+    if (data.email && data.email !== user.email) {
+      const existingUser = await prisma.user.findUnique({
+        where: {
+          email: data.email,
+        },
+      });
+
+      if (existingUser && existingUser.id !== user.id) return { error: "Email already in use!" };
+
+      const verificationToken = await generateVerificationToken(data.email);
+
+      await sendVerificationEmail(verificationToken.email, verificationToken.token);
+
+      return { success: "Verification email sent!" };
+    }
+
+    if (data.password && data.newPassword && dbUser.password) {
+      const passwordsMatch = await bcrypt.compare(data.password, dbUser.password);
+
+      if (!passwordsMatch) return { error: "Incorrect password!" };
+
+      const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+
+      data.password = hashedPassword;
+      data.newPassword = undefined;
+    }
 
     await prisma.user.update({
       where: {

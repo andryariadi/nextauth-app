@@ -17,11 +17,23 @@ import { PiEye } from "react-icons/pi";
 import { RiEyeCloseFill } from "react-icons/ri";
 import { useState } from "react";
 import { UserRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
 
 const SettingsPage = () => {
   const user = useCurrentUser();
-  const [openPass, setOpenPass] = useState<boolean>(false);
-  const [openNewPass, setOpenNewPass] = useState<boolean>(false);
+  const { update } = useSession();
+
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    current: false,
+    new: false,
+  });
+
+  const togglePasswordVisibility = (type: "current" | "new") => {
+    setPasswordVisibility((prev) => ({
+      ...prev,
+      [type]: !prev[type],
+    }));
+  };
 
   const {
     register,
@@ -35,6 +47,7 @@ const SettingsPage = () => {
       password: undefined,
       newPassword: undefined,
       role: user?.role || undefined,
+      isTwoFactorEnabled: user?.isTwoFactorEnabled || undefined,
     },
   });
 
@@ -44,19 +57,19 @@ const SettingsPage = () => {
   const dataNewPassword = { ...register("newPassword") };
 
   const handleUpdateUser: SubmitHandler<z.infer<typeof settingSchema>> = async (data) => {
+    console.log(data, "<---diupdateuser");
+
     try {
-      console.log(data, "<---handleUpdateUser");
       const res = await updateUser(data);
 
       if (res?.success) {
         toast.success(res?.success, { style: toastStyle });
+        update();
       }
 
       if (res?.error) {
         toast.error(res?.error, { style: toastStyle });
       }
-
-      console.log(res, "handleUpdateUser2");
     } catch (error) {
       console.log(error);
     }
@@ -70,43 +83,43 @@ const SettingsPage = () => {
         <div className="flex flex-col gap-8">
           <div className="relative">
             <InputField icon={<UserRound size={22} />} type="text" placeholder="Username" propData={dataUsername} />
-
-            {errors.name && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.name.message as string}</p>}
+            {errors.name && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.name.message}</p>}
           </div>
 
-          <div className="relative">
-            <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" propData={dataEmail} />
+          {user?.isOAuth === null && (
+            <>
+              <div className="relative">
+                <InputField icon={<IoMailOutline size={22} />} type="email" placeholder="Email" propData={dataEmail} />
+                {errors.email && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.email.message}</p>}
+              </div>
 
-            {errors.email && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.email.message as string}</p>}
-          </div>
+              <div className="relative">
+                <InputField
+                  icon={<Lock size={22} />}
+                  passIcon={passwordVisibility.current ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
+                  openPass={passwordVisibility.current}
+                  setOpenPass={() => togglePasswordVisibility("current")}
+                  type={passwordVisibility.current ? "text" : "password"}
+                  placeholder="Password"
+                  propData={dataPassword}
+                />
+                {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message}</p>}
+              </div>
 
-          <div className="relative">
-            <InputField
-              icon={<Lock size={22} />}
-              passIcon={openPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
-              openPass={openPass}
-              setOpenPass={setOpenPass}
-              type={openPass ? "text" : "password"}
-              placeholder="Password"
-              propData={dataPassword}
-            />
-
-            {errors.password && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.password.message as string}</p>}
-          </div>
-
-          <div className="relative">
-            <InputField
-              icon={<Lock size={22} />}
-              passIcon={openNewPass ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
-              openPass={openNewPass}
-              setOpenPass={setOpenNewPass}
-              type={openNewPass ? "text" : "password"}
-              placeholder="New Password"
-              propData={dataNewPassword}
-            />
-
-            {errors.newPassword && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.newPassword.message as string}</p>}
-          </div>
+              <div className="relative">
+                <InputField
+                  icon={<Lock size={22} />}
+                  passIcon={passwordVisibility.new ? <PiEye size={22} /> : <RiEyeCloseFill size={22} />}
+                  openPass={passwordVisibility.new}
+                  setOpenPass={() => togglePasswordVisibility("new")}
+                  type={passwordVisibility.new ? "text" : "password"}
+                  placeholder="New Password"
+                  propData={dataNewPassword}
+                />
+                {errors.newPassword && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.newPassword.message}</p>}
+              </div>
+            </>
+          )}
 
           <div className="relative">
             <select
@@ -117,16 +130,24 @@ const SettingsPage = () => {
               <option value={UserRole.ADMIN}>Admin</option>
               <option value={UserRole.USER}>User</option>
             </select>
-
-            {errors.role && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.role.message as string}</p>}
+            {errors.role && <p className="absolute -bottom-5 text-red-500 text-sm">{errors.role.message}</p>}
           </div>
 
-          <div className="relative">
-            <label className="relative inline-block h-7 w-[48px] cursor-pointer rounded-full bg-gray-800 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-[#22C55E]">
-              <input type="checkbox" id="AcceptConditions" className="peer sr-only" />
-              <span className="absolute inset-y-0 start-0 m-1 size-5 rounded-full bg-gray-300 ring-[5px] ring-inset ring-white transition-all peer-checked:start-7 peer-checked:w-2 peer-checked:bg-white peer-checked:ring-transparent"></span>
-            </label>
-          </div>
+          {user?.isOAuth === null && (
+            <div className="relative">
+              <div className="b-rose-600 flex items-center justify-between py-3 px-5 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-700">
+                <div className="flex flex-col gap-1">
+                  <h5 className="text-xl font-bold">Two Factor Authentication</h5>
+                  <span className="text-sm text-gray-400">Enable two factor authentication to protect your account</span>
+                </div>
+
+                <label className="relative inline-block h-7 w-[48px] cursor-pointer rounded-full bg-gray-800 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-[#22C55E]">
+                  <input {...register("isTwoFactorEnabled")} type="checkbox" id="AcceptConditions" className="peer sr-only" />
+                  <span className="absolute inset-y-0 start-0 m-1 size-5 rounded-full bg-gray-300 ring-[5px] ring-inset ring-white transition-all peer-checked:start-7 peer-checked:w-2 peer-checked:bg-white peer-checked:ring-transparent"></span>
+                </label>
+              </div>
+            </div>
+          )}
         </div>
 
         <motion.button
