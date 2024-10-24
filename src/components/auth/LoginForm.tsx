@@ -31,6 +31,8 @@ const LoginForm: React.FC = () => {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
 
   const searchParams = useSearchParams();
+
+  // Notify if user OAuth try to login with same email
   const errorUrl = searchParams.get("error") === "OAuthAccountNotLinked" ? "Email already in use with different provider!" : "";
 
   const {
@@ -122,10 +124,14 @@ const LoginForm: React.FC = () => {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md bg-gray-700 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl text-gray-400">
       {/* Top */}
       <div className="p-8 flex flex-col gap-5">
-        <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text">Welcome Back</h2>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text">Welcome Back</h2>
+
+          {showTwoFactor && <p className="text-sm text-center">Ente the 6-digit code sent to your email!</p>}
+        </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit(handleLogin)} className={`flex flex-col ${showTwoFactor ? "gap-3" : "gap-6"}`}>
           {!showTwoFactor && (
             <>
               <div className="bg-violt-500 bg-ros-500 flex flex-col gap-8">
@@ -169,7 +175,7 @@ const LoginForm: React.FC = () => {
 
           <span className="text-red-500 text-sm">{errorUrl}</span>
 
-          {tokenMessage && (
+          {tokenMessage && !showTwoFactor && (
             <div className="flex items-center justify-center gap-2 bg-emerald-400 bg-opacity-20 rounded-lg p-2 text-emerald-400">
               <GoCheckCircle size={20} />
               <p>{tokenMessage}</p>

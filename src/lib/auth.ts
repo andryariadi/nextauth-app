@@ -60,6 +60,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         console.log({ twoFactorConfirmation }, "<---dicallbacksignin3");
 
+        // Prevent sign in if 2FA is not confirmed
         if (!twoFactorConfirmation) return false;
 
         // Delete two factor confirmation for new sign in

@@ -64,8 +64,6 @@ export const login = async ({ email, password, code }: z.infer<typeof loginSchem
 
     if (!existingUser || !existingUser.email) return { error: "Email does not exist!" };
 
-    if (!existingUser || !existingUser.password) return { error: "Password does not exist!" };
-
     // Check if email is verified
     if (!existingUser.emailVerified) {
       const verificationToken = await generateVerificationToken(email);
@@ -107,6 +105,7 @@ export const login = async ({ email, password, code }: z.infer<typeof loginSchem
           });
         }
 
+        // Create two-factor confirmation
         await prisma.twoFactorConfirmation.create({
           data: { userId: existingUser.id },
         });
@@ -310,6 +309,7 @@ export const updateUser = async (data: z.infer<typeof settingSchema>) => {
       return { success: "Verification email sent!" };
     }
 
+    // Validation if user trying update password
     if (data.password && data.newPassword && dbUser.password) {
       const passwordsMatch = await bcrypt.compare(data.password, dbUser.password);
 
